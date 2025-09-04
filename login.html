@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Masuk</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <h1>Masuk</h1>
+    <p class="muted">Gunakan email & password yang terdaftar.</p>
+
+    <input id="email" type="email" placeholder="email" autocomplete="username" />
+    <input id="password" type="password" placeholder="password" autocomplete="current-password" />
+    <button id="btnLogin">Login</button>
+
+    <p class="footer">Belum punya akun? <span id="openReg" class="link">Register dulu</span></p>
+  </div>
+
+  <!-- Modal Register -->
+  <div id="regModal" class="modal" aria-hidden="true">
+    <div class="card">
+      <h2>Register</h2>
+      <div class="row">
+        <input id="regEmail" type="email" placeholder="email" />
+        <input id="regPass" type="password" placeholder="password (min 6)" />
+      </div>
+      <input id="regPass2" type="password" placeholder="konfirmasi password" />
+      <div class="row">
+        <button id="btnReg" class="secondary">Buat Akun</button>
+        <button id="btnClose" class="secondary">Batal</button>
+      </div>
+      <p class="hint">Email harus valid. Password minimal 6 karakter.</p>
+    </div>
+  </div>
+
+  <!-- Urutan penting: auth.js dulu -->
+  <script src="auth.js?v=4"></script>
+  <script src="login.js?v=4"></script>
+</body>
+</html>
