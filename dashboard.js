@@ -3,32 +3,27 @@
 
   (async function init(){
     const token = getToken();
-    console.log('[dashboard] token:', token ? token.slice(0, 24) + '...' : token);
-    if (!token) { 
-      console.warn('[dashboard] no token → redirect');
-      location.href = './index.html'; 
-      return; 
-    }
+    if (!token) { location.href = './index.html'; return; }
     try{
       const me = await apiMe(token);
-      console.log('[dashboard] me result:', me);
-      if (me && me.ok && me.user && me.user.email) {
-        q('#greet').textContent = `Halo, ${me.user.email}`;
+      if (me && me.ok && me.user) {
+        const name = me.user.name || me.user.username || me.user.email;
+        q('#greet').textContent = `Halo, ${name}`;
         return;
       }
       const errMsg = (me && (me.error || me.raw)) || 'Unknown error';
       throw new Error(errMsg);
     } catch(e){
-      console.error('[dashboard] apiMe error:', e);
       clearToken();
-      toast('Sesi berakhir. Silakan login lagi.','err');
+      await toast('Sesi berakhir. Silakan login lagi.','err');
       location.href = './index.html';
     }
   })();
 
   const btn = document.querySelector('#btnLogout');
-  if (btn) btn.onclick = () => {
+  if (btn) btn.onclick = async () => {
     clearToken();
+    await toast('Anda telah logout.','ok');
     location.href = './index.html';
   };
 })();

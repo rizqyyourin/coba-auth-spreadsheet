@@ -1,23 +1,35 @@
 (() => {
   // ======== KONFIG ========
-  const GAS_URL   = 'https://script.google.com/macros/s/AKfycbw-VDlk2p-iPWeepK443VXvju5ENvxA3KQpz_fbD5zX5yKya09Z0UKYNN1eMeIvEB9N/exec'; // ganti ke /exec terbarumu
-  const PROXY_URL = 'http://localhost:3000/api'; // dipakai hanya di DEV
+  const GAS_URL   = 'https://script.google.com/macros/s/AKfycbw-VDlk2p-iPWeepK443VXvju5ENvxA3KQpz_fbD5zX5yKya09Z0UKYNN1eMeIvEB9N/exec';
+  const PROXY_URL = 'http://localhost:3000/api'; // dev only
   const USE_PROXY = /^(localhost|127\.|10\.|192\.168\.)/.test(location.hostname);
 
-  // ======== UTIL UI ========
-  const sel = (s, root = document) => root.querySelector(s);
-  function toast(msg, type = 'info') {
-    const t = document.createElement('div');
-    t.className = 'toast ' + type;
-    t.textContent = msg;
-    document.body.appendChild(t);
-    requestAnimationFrame(() => {
-      t.classList.add('show');
-      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2200);
+  // ======== Alert modal (centered) ========
+  function alertBox({ title='Info', message='', type='info', okText='OK' }){
+    const backdrop = document.createElement('div');
+    backdrop.className = 'alert-backdrop';
+    const box = document.createElement('div');
+    box.className = 'alert-box';
+    const h = document.createElement('div'); h.className = 'alert-title'; h.textContent = title;
+    const p = document.createElement('div'); p.className = 'alert-msg';   p.textContent = message;
+    const act = document.createElement('div'); act.className = 'alert-actions';
+    const ok = document.createElement('button'); ok.className = 'alert-btn alert-ok'; ok.textContent = okText;
+    if (type === 'ok') ok.classList.add('ok');
+    if (type === 'err') ok.classList.add('err');
+    act.appendChild(ok); box.appendChild(h); box.appendChild(p); box.appendChild(act); backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
+    requestAnimationFrame(()=>backdrop.classList.add('show'));
+    return new Promise(res=>{
+      const close=()=>{ backdrop.classList.remove('show'); setTimeout(()=>backdrop.remove(),180); res(); };
+      ok.onclick = close; backdrop.addEventListener('click',e=>{ if(e.target===backdrop) close(); });
     });
   }
 
-  // ======== TOKEN ========
+  // Back-compat: ganti `toast()` jadi alert center
+  function toast(msg, type='info'){ return alertBox({ title: type==='err'?'Terjadi Kesalahan': (type==='ok'?'Berhasil':'Info'), message: msg, type }); }
+
+  // ======== UTIL ========
+  const sel = (s, root = document) => root.querySelector(s);
   const saveToken  = (t) => localStorage.setItem('token', t);
   const getToken   = ()  => localStorage.getItem('token');
   const clearToken = ()  => localStorage.removeItem('token');
@@ -56,10 +68,8 @@
       let done = false;
       const cleanup = () => { if (done) return; done = true; clearTimeout(to); try { s.remove(); } catch(_){} };
 
-      console.log('[jsonp] url:', s.src); // debug: lihat URL JSONP di Console
-
       window.__jsonpQueue.push((data) => { cleanup(); resolve(data); });
-      s.onerror = () => { console.log('[jsonp] onerror for:', s.src); cleanup(); reject(new Error('JSONP network error')); };
+      s.onerror = () => { cleanup(); reject(new Error('JSONP network error')); };
       const to = setTimeout(() => { cleanup(); reject(new Error('JSONP timeout')); }, timeout);
 
       document.head.appendChild(s);
@@ -67,19 +77,19 @@
   }
 
   // ======== API WRAPPERS ========
-  const apiRegister = (email, password) =>
-    USE_PROXY ? callViaProxy({ action: 'register', email, password })
-              : callViaJsonp({ action: 'register', email, password });
+  const apiRegister = (username, email, password) =>
+    USE_PROXY ? callViaProxy({ action: 'register', username, email, password })
+              : callViaJsonp({ action: 'register', username, email, password });
 
   const apiLogin = (email, password) =>
     USE_PROXY ? callViaProxy({ action: 'login', email, password })
               : callViaJsonp({ action: 'login', email, password });
 
-  // kirim dua nama param: auth & token (fallback)
+  // kirim dua nama param (auth & token) agar backend selalu menangkap token
   const apiMe = (jwt) =>
     USE_PROXY ? callViaProxy({ action: 'me', auth: jwt, token: jwt })
               : callViaJsonp({ action: 'me', auth: jwt, token: jwt });
 
   // ======== EXPOSE GLOBAL ========
-  window.Auth = { apiRegister, apiLogin, apiMe, saveToken, getToken, clearToken, $: sel, toast };
+  window.Auth = { apiRegister, apiLogin, apiMe, saveToken, getToken, clearToken, $: sel, toast, alertBox };
 })();
