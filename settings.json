@@ -1,0 +1,12 @@
+{
+  "liveServer.settings.proxy": {
+    "enable": true,
+    "baseUri": "/api",
+    "proxyUri": "https://script.google.com/macros/s/AKfycbzfW8-AQIUPNlqVPHKe9bR8qop2ftAJ4n0La-ebK09sAGuW-CVPGsMBtgbcTCW7BlSR/exec"
+  },
+  "liveServer.settings.wait": 500,
+  "liveServer.settings.ignoreFiles": [
+    "**/.git/**",
+    "**/backend/**"
+  ]
+}
