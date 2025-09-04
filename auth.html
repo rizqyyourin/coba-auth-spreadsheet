@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Masuk</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav__in">
+      <a class="brand" href="./index.html"><span class="logo">✦</span> <b>Blog</b></a>
+      <div class="spacer"></div>
+      <a class="btn" href="./index.html">Beranda</a>
+    </div>
+  </header>
+
+  <main class="container narrow">
+    <h2>Masuk</h2>
+    <section class="panel">
+      <label>Email</label>
+      <input id="lEmail" type="email" placeholder="nama@domain.com" />
+      <label>Password</label>
+      <div class="pw">
+        <input id="lPass" type="password" placeholder="••••••" />
+        <button id="lToggle" class="pw__toggle" aria-label="Lihat password">👁</button>
+      </div>
+      <button id="btnLogin" class="btn btn--pri">Masuk</button>
+
+      <p class="muted" style="margin-top:12px">
+        Belum memiliki akun?
+        <a href="#" id="openReg" class="link">Registrasi di sini</a>
+      </p>
+    </section>
+  </main>
+
+  <!-- Modal Registrasi -->
+  <div id="regModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__content" role="document">
+      <h3 style="margin:0 0 8px">Registrasi</h3>
+      <p class="muted" style="margin:0 0 10px">Buat akun baru untuk menulis & membaca artikel.</p>
+
+      <label>Username</label>
+      <input id="rUser" type="text" placeholder="username" />
+      <label>Email</label>
+      <input id="rEmail" type="email" placeholder="nama@domain.com" />
+      <label>Password</label>
+      <div class="pw">
+        <input id="rPass" type="password" placeholder="min 6 karakter" />
+        <button id="rToggle" class="pw__toggle" aria-label="Lihat password">👁</button>
+      </div>
+      <label>Ulangi Password</label>
+      <input id="rPass2" type="password" placeholder="konfirmasi password" />
+
+      <div class="modal__actions">
+        <button id="btnClose" class="btn">Batal</button>
+        <button id="btnReg" class="btn btn--pri">Buat Akun</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const next = new URL(location.href).searchParams.get('next');
+    if (Auth.getToken()) location.href = next || './index.html';
+
+    const lPass = $('#lPass');
+    $('#lToggle').onclick = (e)=>{ e.preventDefault(); lPass.type = lPass.type==='password'?'text':'password'; };
+
+    $('#btnLogin').onclick = async ()=>{
+      const email = $('#lEmail').value.trim();
+      const pass  = $('#lPass').value;
+      if(!email || !pass) return toast('Email & password wajib diisi','err');
+      try{
+        showLoader('Masuk...');
+        const res = await API.login(email, pass);
+        hideLoader();
+        if(res.error){
+          const m = String(res.error).toLowerCase();
+          if(m.includes('user not found')) return toast('Akun tidak ditemukan.','err');
+          if(m.includes('invalid credentials')) return toast('Password salah.','err');
+          return toast('Login gagal: '+res.error,'err');
+        }
+        Auth.saveToken(res.token);
+        toast('Login berhasil!','ok');
+        location.href = next || './index.html';
+      }catch(e){
+        hideLoader();
+        toast(e.message==='TIMEOUT'?'Permintaan kedaluwarsa.':'Gagal login: '+e.message,'err');
+      }
+    };
+
+    // Registrasi (modal)
+    const regModal = $('#regModal');
+    const openReg  = $('#openReg');
+    const btnClose = $('#btnClose');
+    const rUser = $('#rUser'), rEmail = $('#rEmail'), rPass = $('#rPass'), rPass2 = $('#rPass2');
+
+    function openModal(){
+      regModal.classList.add('open'); regModal.setAttribute('aria-hidden','false');
+      rEmail.value = $('#lEmail').value.trim(); rUser.focus();
+    }
+    function closeModal(){
+      regModal.classList.remove('open'); regModal.setAttribute('aria-hidden','true');
+      openReg.focus();
+    }
+    openReg.onclick = (e)=>{ e.preventDefault(); openModal(); };
+    btnClose.onclick = closeModal;
+    regModal.addEventListener('click', (e)=>{ if(e.target.id==='regModal') closeModal(); });
+    document.addEventListener('keydown', (e)=>{ if(regModal.classList.contains('open') && e.key==='Escape') closeModal(); });
+    $('#rToggle').onclick = (e)=>{ e.preventDefault(); rPass.type = rPass.type==='password'?'text':'password'; };
+
+    $('#btnReg').onclick = async ()=>{
+      const u = rUser.value.trim(), e = rEmail.value.trim(), p = rPass.value, p2 = rPass2.value;
+      if(!u || u.length<3) return toast('Username minimal 3 karakter.','err');
+      if(!/^[A-Za-z0-9_]{3,24}$/.test(u)) return toast('Username hanya huruf/angka/underscore.','err');
+      if(!e || !p) return toast('Email & password wajib diisi','err');
+      if(p.length<6) return toast('Password minimal 6','err');
+      if(p!==p2) return toast('Konfirmasi password tidak cocok','err');
+
+      try{
+        showLoader('Mendaftarkan...');
+        const r = await API.register(u,e,p);
+        hideLoader();
+        if(r.error){
+          const m = String(r.error).toLowerCase();
+          if(m.includes('username already exists')) return toast('Username sudah dipakai.','err');
+          if(m.includes('email already exists')) return toast('Email sudah terdaftar.','err');
+          return toast('Register gagal: '+r.error,'err');
+        }
+        toast('Register berhasil. Silakan masuk.','ok');
+        closeModal();
+        $('#lEmail').value = e; $('#lPass').value='';
+      }catch(err){
+        hideLoader();
+        toast(err.message==='TIMEOUT'?'Permintaan kedaluwarsa.':'Gagal register: '+err.message,'err');
+      }
+    };
+
+    if (location.hash === '#register') openModal();
+  </script>
+</body>
+</html>

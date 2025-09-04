@@ -2,31 +2,76 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Beranda · Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Artikel</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header id="app-nav"></header>
-
-  <div class="container">
-    <div class="blog-toolbar">
-      <input id="q" type="search" placeholder="Cari artikel..." />
+  <header class="nav">
+    <div class="nav__in">
+      <a class="brand" href="./index.html"><span class="logo">✦</span> <b>Blog</b></a>
       <div class="spacer"></div>
-      <button id="btnSearch" class="secondary">Cari</button>
+      <a class="btn" href="./index.html">Beranda</a>
+      <button id="btnLogout" class="btn" style="display:none">Logout</button>
     </div>
+  </header>
 
-    <div id="list" class="blog-list"></div>
+  <main class="container">
+    <article class="post">
+      <h1 id="title">Memuat...</h1>
+      <div id="meta" class="muted"></div>
+      <hr class="sep" />
+      <div id="content" class="content"></div>
+    </article>
+  </main>
 
-    <div class="pager">
-      <button id="prev" class="secondary">← Sebelumnya</button>
-      <span id="pageInfo" class="muted"></span>
-      <button id="next" class="secondary">Berikutnya →</button>
-    </div>
-  </div>
+  <script src="app.js"></script>
+  <script>
+    (async ()=>{
+      const slug = new URL(location.href).searchParams.get('slug') || '';
+      const nextUrl = `./post.html?slug=${encodeURIComponent(slug)}`;
 
-  <script src="auth.js?v=fix_exec"></script>
-  <script src="nav.js?v=fix_exec"></script>
-  <script src="posts-list.js?v=fix_exec"></script>
+      const token = Auth.getToken();
+      if (!token || !looksLikeJwt(token)) {
+        toast('Silakan login untuk membaca artikel.', 'err');
+        location.href = `./auth.html?next=${encodeURIComponent(nextUrl)}`;
+        return;
+      }
+
+      const lo = document.getElementById('btnLogout');
+      if (lo) { lo.style.display=''; lo.onclick = ()=>{ Auth.clearToken(); toast('Anda logout.','ok'); location.href='./index.html'; }; }
+
+      try{
+        showLoader('Memvalidasi sesi...');
+        console.log('[post] token len:', token.length, 'preview:', token.slice(0,20)+'...');
+        const me = await API.me(token);
+        console.log('[post] /me result:', me);
+        if (me && me.error) {
+          const msg = String(me.error).toLowerCase();
+          if (msg.includes('expired')) throw new Error('Sesi kedaluwarsa');
+          if (msg.includes('invalid')) throw new Error('Token tidak valid');
+          if (msg.includes('missing')) throw new Error('Token hilang');
+          throw new Error(me.error);
+        }
+
+        showLoader('Memuat artikel...');
+        const res = await API.postsGet({ slug });
+        hideLoader();
+        if (!res || res.error) throw new Error(res?.error || 'Gagal memuat artikel');
+
+        document.title = res.title || 'Artikel';
+        document.getElementById('title').textContent = res.title || '(Tanpa judul)';
+        const d = res.created_at ? new Date(res.created_at) : null;
+        const ds = d && !isNaN(d) ? d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '';
+        document.getElementById('meta').textContent = `${res.author_name || 'Anon'}${ds ? ' • ' + ds : ''}`;
+        document.getElementById('content').innerText = res.content || '';
+      } catch (e) {
+        hideLoader();
+        console.warn('[post] guard error:', e);
+        toast('Sesi berakhir. Silakan masuk lagi.','err');
+        setTimeout(()=> location.href = `./auth.html?next=${encodeURIComponent(nextUrl)}`, 700);
+      }
+    })();
+  </script>
 </body>
 </html>

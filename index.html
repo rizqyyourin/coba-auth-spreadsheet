@@ -2,31 +2,126 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Beranda · Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog · Landing</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header id="app-nav"></header>
-
-  <div class="container">
-    <div class="blog-toolbar">
-      <input id="q" type="search" placeholder="Cari artikel..." />
+  <header class="nav">
+    <div class="nav__in">
+      <a class="brand" href="./index.html"><span class="logo">✦</span> <b>Blog</b></a>
       <div class="spacer"></div>
-      <button id="btnSearch" class="secondary">Cari</button>
+      <a id="btnMasuk" class="btn btn--pri" href="./auth.html">Masuk</a>
+      <button id="btnLogout" class="btn" style="display:none">Logout</button>
     </div>
+  </header>
 
-    <div id="list" class="blog-list"></div>
+  <main class="container">
+    <section class="hero">
+      <h1>Artikel dari Komunitas</h1>
+      <p class="muted">Baca inspirasi terbaru. Untuk membaca detail artikel, silakan masuk terlebih dahulu.</p>
+      <div class="hero__actions">
+        <input id="q" type="search" placeholder="Cari artikel..." />
+        <button id="btnSearch" class="btn">Cari</button>
+      </div>
+    </section>
+
+    <section id="list" class="grid"></section>
 
     <div class="pager">
-      <button id="prev" class="secondary">← Sebelumnya</button>
+      <button id="prev" class="btn" disabled>← Sebelumnya</button>
       <span id="pageInfo" class="muted"></span>
-      <button id="next" class="secondary">Berikutnya →</button>
+      <button id="next" class="btn">Berikutnya →</button>
+    </div>
+  </main>
+
+  <!-- Modal ajakan login -->
+  <div id="authPrompt" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__content" role="document">
+      <h3 style="margin:0 0 8px">Masuk untuk membaca</h3>
+      <p class="muted" style="margin:0 0 12px">
+        Untuk membaca artikel lengkap, silakan masuk terlebih dahulu.
+      </p>
+      <div class="modal__actions">
+        <button id="mpCancel" class="btn">Nanti</button>
+        <a id="mpLogin" class="btn btn--pri">Masuk</a>
+      </div>
     </div>
   </div>
 
-  <script src="auth.js?v=fix_exec"></script>
-  <script src="nav.js?v=fix_exec"></script>
-  <script src="posts-list.js?v=fix_exec"></script>
+  <script src="app.js"></script>
+  <script>
+    const state = { page:1, limit:6, q:'' };
+    let pendingNext = null;
+
+    function cardSkeleton(n=6){
+      const list = $('#list'); list.innerHTML='';
+      for(let i=0;i<n;i++){
+        const el = document.createElement('article');
+        el.className='card';
+        el.innerHTML = `
+          <div class="sk sk-title"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line w80"></div>
+          <div class="sk sk-meta"></div>`;
+        list.appendChild(el);
+      }
+    }
+    function render(items){
+      const list = $('#list'); list.innerHTML='';
+      if(!items || !items.length){ list.innerHTML = `<div class="empty">Tidak ada artikel.</div>`; return; }
+      for(const it of items){
+        const a = document.createElement('article');
+        a.className='card';
+        const d = it.created_at ? new Date(it.created_at) : null;
+        const ds = d && !isNaN(d) ? d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '';
+        a.innerHTML = `
+          <a href="#" class="card__title">${esc(it.title)}</a>
+          <p class="card__excerpt">${esc((it.excerpt||'').slice(0,160))}</p>
+          <div class="meta">${esc(it.author_name||'Anon')}${ds?` • ${ds}`:''}</div>`;
+        a.querySelector('.card__title').onclick = (e)=>{
+          e.preventDefault();
+          const nextUrl = `./post.html?slug=${encodeURIComponent(it.slug)}`;
+          if(!Auth.getToken()){ pendingNext = nextUrl; openAuthPrompt(); return; }
+          location.href = nextUrl;
+        };
+        list.appendChild(a);
+      }
+    }
+    async function load(){
+      try{
+        cardSkeleton(state.limit);
+        const res = await API.postsList(state.q, state.page, state.limit);
+        if(res.error) throw new Error(res.error);
+        render(res.items);
+        $('#pageInfo').textContent = `Hal ${res.page} dari ${res.total_pages}`;
+        $('#prev').disabled = res.page <= 1;
+        $('#next').disabled = res.page >= res.total_pages;
+      }catch(e){
+        $('#list').innerHTML = `<div class="empty">Gagal memuat artikel: ${esc(e.message)}</div>`;
+      }
+    }
+    $('#btnSearch').onclick = ()=>{ state.q = $('#q').value.trim(); state.page=1; load(); };
+    $('#prev').onclick = ()=>{ if(state.page>1){ state.page--; load(); } };
+    $('#next').onclick = ()=>{ state.page++; load(); };
+
+    if (Auth.getToken()){
+      $('#btnMasuk').style.display='none';
+      $('#btnLogout').style.display='';
+      $('#btnLogout').onclick = ()=>{ Auth.clearToken(); toast('Anda telah logout.','ok'); location.reload(); };
+    }
+
+    function openAuthPrompt(){
+      const m = $('#authPrompt'); m.classList.add('open'); m.setAttribute('aria-hidden','false');
+      const next = pendingNext || './index.html';
+      $('#mpLogin').href = `./auth.html?next=${encodeURIComponent(next)}`;
+    }
+    function closeAuthPrompt(){ const m=$('#authPrompt'); m.classList.remove('open'); m.setAttribute('aria-hidden','true'); }
+    $('#mpCancel').onclick = closeAuthPrompt;
+    $('#authPrompt').addEventListener('click', e=>{ if(e.target.id==='authPrompt') closeAuthPrompt(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAuthPrompt(); });
+
+    load();
+  </script>
 </body>
 </html>
