@@ -13,10 +13,8 @@
   const btnReg  = q('#btnReg');
   const btnClose= q('#btnClose');
 
-  // Jika sudah login → langsung ke dashboard
   if (getToken()) location.href = './dashboard.html';
 
-  // Modal register
   openReg?.addEventListener('click', () => {
     regModal.classList.add('open');
     regEmail.value = emailEl.value;
@@ -24,7 +22,6 @@
   });
   btnClose?.addEventListener('click', () => regModal.classList.remove('open'));
 
-  // Register
   btnReg?.addEventListener('click', async () => {
     const email = regEmail.value.trim(), pass = regPass.value, pass2 = regPass2.value;
     if (!email || !pass) return toast('Email/password wajib diisi','err');
@@ -45,7 +42,6 @@
     }
   });
 
-  // Login
   btnLogin.addEventListener('click', async () => {
     const email = emailEl.value.trim(), pass = passEl.value;
     if (!email || !pass) return toast('Email & password wajib diisi','err');
@@ -64,7 +60,6 @@
     }
   });
 
-  // Enter untuk submit
   [ emailEl, passEl ].forEach(el => el.addEventListener('keydown', e => {
     if (e.key === 'Enter') btnLogin.click();
   }));

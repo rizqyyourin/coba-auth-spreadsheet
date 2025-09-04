@@ -16,7 +16,6 @@
         q('#greet').textContent = `Halo, ${me.user.email}`;
         return;
       }
-      // kalau balikannya bukan ok
       const errMsg = (me && (me.error || me.raw)) || 'Unknown error';
       throw new Error(errMsg);
     } catch(e){
