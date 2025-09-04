@@ -38,3 +38,13 @@ button.secondary{background:#fff;color:#111;border:1px solid var(--border)}
 .nav .right button{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
 .container{max-width:900px;margin:24px auto;padding:0 16px}
 .panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px}
+
+/* === auth error states === */
+.input-error{border-color:#ef4444; outline: none;}
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60% { transform: translateX(6px); }
+}
+.shake { animation: shake 400ms ease-in-out; }
