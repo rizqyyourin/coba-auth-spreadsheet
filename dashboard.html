@@ -7,19 +7,18 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="nav">
-    <div class="left"><strong>Dashboard</strong></div>
-    <div class="right"><button id="btnLogout">Logout</button></div>
-  </div>
+  <header id="app-nav"></header>
 
   <div class="container">
     <div class="panel">
       <h2 id="greet">Halo, ...</h2>
-      <p class="muted">Selamat datang! (Nanti di sini tabel stok, dsb.)</p>
+      <p class="muted">Selamat datang! (Nanti di sini ada “Tulis Artikel”, dsb.)</p>
     </div>
   </div>
 
-  <script src="auth.js?v=u1"></script>
-  <script src="dashboard.js?v=u1"></script>
+  <script src="auth.js?v=fix_exec"></script>
+  <script src="nav.js?v=fix_exec"></script>
+  <script src="guard.js?v=fix_exec"></script>
+  <script src="dashboard.js?v=fix_exec"></script>
 </body>
 </html>

@@ -14,18 +14,14 @@
   const btnReg   = q('#btnReg');
   const btnClose = q('#btnClose');
 
-  // sudah login? langsung ke dashboard
-  if (getToken()) location.href = './dashboard.html';
+  // sudah login? arahkan ke next atau dashboard
+  if (getToken()){
+    const next = new URL(location.href).searchParams.get('next');
+    location.href = next || './dashboard.html';
+  }
 
-  // helpers kecil
-  function markError(el){
-    el.classList.add('input-error','shake');
-    setTimeout(()=>el.classList.remove('shake'), 450);
-  }
-  function clearErrors(){
-    [emailEl, passEl, regUsername, regEmail, regPass, regPass2]
-      .filter(Boolean).forEach(el => el.classList.remove('input-error'));
-  }
+  function markError(el){ el.classList.add('input-error','shake'); setTimeout(()=>el.classList.remove('shake'), 450); }
+  function clearErrors(){ [emailEl, passEl, regUsername, regEmail, regPass, regPass2].filter(Boolean).forEach(el => el.classList.remove('input-error')); }
 
   // modal register
   openReg?.addEventListener('click', () => {
@@ -57,7 +53,6 @@
       regModal.classList.remove('open');
       emailEl.value = email; passEl.value='';
     }catch(e){
-      // mapping error register
       const msg = String(e.message||'').toLowerCase();
       if (msg.includes('username already exists')) { markError(regUsername); await toast('Username sudah dipakai.','err'); }
       else if (msg.includes('email already exists')){ markError(regEmail); await toast('Email sudah terdaftar.','err'); }
@@ -81,7 +76,6 @@
     try{
       const res = await apiLogin(email, pass);
 
-      // handle error dari server tanpa melempar exception dulu
       if (res && res.error){
         const err = String(res.error).toLowerCase();
         if (err.includes('user not found')){
@@ -97,29 +91,23 @@
           passEl.focus();
           return;
         }
-        // error lain
         await toast('Login gagal: ' + res.error, 'err');
         return;
       }
 
       if (!res || !res.token) throw new Error('Token kosong');
       saveToken(res.token);
-      location.href = './dashboard.html';
+
+      const next = new URL(location.href).searchParams.get('next');
+      location.href = next || './dashboard.html';
     }catch(e){
-      // network/JSONP timeouts
       const msg = String(e.message||'').toLowerCase();
-      if (msg.includes('jsonp')) {
-        await toast('Gangguan jaringan. Coba lagi.','err');
-      } else {
-        await toast('Login gagal: ' + e.message,'err');
-      }
+      if (msg.includes('jsonp')) await toast('Gangguan jaringan. Coba lagi.','err');
+      else await toast('Login gagal: ' + e.message,'err');
     }finally{
       btnLogin.disabled = false; btnLogin.textContent = 'Login';
     }
   });
 
-  // enter submit
-  [ emailEl, passEl ].forEach(el => el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') btnLogin.click();
-  }));
+  [ emailEl, passEl ].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') btnLogin.click(); }));
 })();

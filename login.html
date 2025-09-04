@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="app-nav"></header>
+
+  <div class="container auth-card">
+    <h2>Masuk</h2>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="nama@domain.com" />
+    <label>Password</label>
+    <input id="password" type="password" placeholder="••••••" />
+    <button id="btnLogin" class="primary">Login</button>
+    <div class="muted" style="margin-top:10px">
+      Belum punya akun? <button id="openReg" class="linklike">Daftar</button>
+    </div>
+  </div>
+
+  <!-- Modal Register -->
+  <div id="regModal" class="modal">
+    <div class="modal__content">
+      <h3>Buat Akun</h3>
+      <label>Username</label>
+      <input id="regUsername" type="text" placeholder="username" />
+      <label>Email</label>
+      <input id="regEmail" type="email" placeholder="nama@domain.com" />
+      <label>Password</label>
+      <input id="regPass" type="password" placeholder="min 6 karakter" />
+      <label>Ulangi Password</label>
+      <input id="regPass2" type="password" placeholder="konfirmasi password" />
+      <div class="modal__actions">
+        <button id="btnClose" class="secondary">Batal</button>
+        <button id="btnReg" class="primary">Buat Akun</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js?v=fix_exec"></script>
+  <script src="nav.js?v=fix_exec"></script>
+  <script src="login.js?v=fix_exec"></script>
+</body>
+</html>
