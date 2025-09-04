@@ -3,19 +3,32 @@
 
   (async function init(){
     const token = getToken();
-    if (!token) { location.href = './index.html'; return; }
+    console.log('[dashboard] token:', token ? token.slice(0, 24) + '...' : token);
+    if (!token) { 
+      console.warn('[dashboard] no token → redirect');
+      location.href = './index.html'; 
+      return; 
+    }
     try{
       const me = await apiMe(token);
-      if (me.error) throw new Error(me.error);
-      q('#greet').textContent = `Halo, ${me.user.email}`;
+      console.log('[dashboard] me result:', me);
+      if (me && me.ok && me.user && me.user.email) {
+        q('#greet').textContent = `Halo, ${me.user.email}`;
+        return;
+      }
+      // kalau balikannya bukan ok
+      const errMsg = (me && (me.error || me.raw)) || 'Unknown error';
+      throw new Error(errMsg);
     } catch(e){
+      console.error('[dashboard] apiMe error:', e);
       clearToken();
       toast('Sesi berakhir. Silakan login lagi.','err');
       location.href = './index.html';
     }
   })();
 
-  q('#btnLogout').onclick = () => {
+  const btn = document.querySelector('#btnLogout');
+  if (btn) btn.onclick = () => {
     clearToken();
     location.href = './index.html';
   };
