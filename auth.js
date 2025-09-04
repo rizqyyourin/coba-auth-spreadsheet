@@ -42,6 +42,11 @@
     const next = window.__jsonpQueue.shift();
     if (typeof next === 'function') next(data);
   };
+
+    console.log('[jsonp] url:', s.src);
+    s.onerror = () => { console.log('[jsonp] onerror for:', s.src); cleanup(); reject(new Error('JSONP network error')); };
+
+
   function callViaJsonp(params, { timeout = 60000 } = {}){
     return new Promise((resolve, reject) => {
       const id = Date.now() + '_' + Math.random().toString(36).slice(2);
