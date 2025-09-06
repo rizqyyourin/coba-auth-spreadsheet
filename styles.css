@@ -59,3 +59,21 @@ input:focus{border-color:#c7d2fe; box-shadow:0 0 0 3px #e0e7ff}
 .modal.open{display:grid}
 .modal__content{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px;max-width:420px;width:100%}
 .modal__actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+
+/* Spacing form di auth */
+.panel label {
+  display: block;
+  margin-top: 10px;              /* jarak label ke field sebelumnya */
+}
+
+.panel .pw {
+  margin-top: 6px;               /* jarak label ke input password */
+  margin-bottom: 10px;           /* jarak input password ke tombol */
+}
+
+#btnLogin {
+  display: block;
+  width: 100%;                   /* biar rapi, full width */
+  margin-top: 12px;              /* jarak ekstra dari field sebelumnya */
+  padding: 12px 14px;            /* sedikit lebih tinggi */
+}

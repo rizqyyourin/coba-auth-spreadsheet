@@ -1,7 +1,7 @@
 {
   "name": "coba-auth-spreadsheet",
   "version": "1.0.0",
-  "description": "",
+  "description": "1. npm init -y\r 2. npm i express\r 3. node proxy.js",
   "main": "auth.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
